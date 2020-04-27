@@ -32,7 +32,7 @@ class MainActivity : AppCompatActivity() {
 
 //        main_ll.forEach {
 //            if (it is TextView) {
-//                it.text = "from RTX"
+//                it.text = "from KTX"
 //            }
 //        }
 
