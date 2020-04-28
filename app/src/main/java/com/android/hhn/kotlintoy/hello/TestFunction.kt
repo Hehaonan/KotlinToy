@@ -94,6 +94,9 @@ fun main() {
         return//@testInline
     }
     println("main...")
+
+
+
 }
 
 // inline 可以中断外部函数的调用

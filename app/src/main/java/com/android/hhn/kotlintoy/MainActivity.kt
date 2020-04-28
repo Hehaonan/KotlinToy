@@ -1,12 +1,18 @@
 package com.android.hhn.kotlintoy
 
+import android.animation.Animator
+import android.animation.ObjectAnimator
 import android.content.Context
 import android.os.Bundle
 import android.view.View
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.animation.doOnCancel
+import androidx.core.animation.doOnEnd
+import androidx.core.animation.doOnStart
 import androidx.core.content.edit
 import androidx.core.text.isDigitsOnly
+import androidx.core.util.lruCache
 import androidx.core.view.forEach
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.coroutines.async
@@ -27,17 +33,44 @@ class MainActivity : AppCompatActivity() {
             putInt("key-int", 5)
             putString("key-str", "test")
         }
+        main_ll.forEach {
+            if (it is TextView) {
+                it.text = "from KTX"
+            }
+        }
+        println("2342".isDigitsOnly())
 
-        //val lrcCache = lruCache(10)
+        // Animator
+        val animator = ObjectAnimator.ofFloat(main_content_tv, "alpha", 1.0f, 0.2f)
+        // 常规
+        animator.addListener(object : Animator.AnimatorListener {
+            override fun onAnimationRepeat(animation: Animator?) {
+            }
 
-//        main_ll.forEach {
-//            if (it is TextView) {
-//                it.text = "from KTX"
-//            }
+            override fun onAnimationEnd(animation: Animator?) {
+            }
+
+            override fun onAnimationCancel(animation: Animator?) {
+            }
+
+            override fun onAnimationStart(animation: Animator?) {
+            }
+        })
+        // KTX
+        animator.doOnStart { }
+        animator.doOnEnd { }
+        animator.doOnCancel { }
+
+//        // 常规
+//        handler.postDelayed({
+//            // runnable.run()
+//        }, 1000L)
+//        // KTX
+//        handler.postDelayed(1000L) {
+//            // runnable.run()
 //        }
 
-        println("2342".isDigitsOnly())
-        // val name = getSystemService(this.localClassName)
+
     }
 
     private val mOkHttpClient = OkHttpClient()
