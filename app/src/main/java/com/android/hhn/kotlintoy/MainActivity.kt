@@ -33,11 +33,11 @@ class MainActivity : AppCompatActivity() {
             putInt("key-int", 5)
             putString("key-str", "test")
         }
-        main_ll.forEach {
-            if (it is TextView) {
-                it.text = "from KTX"
-            }
-        }
+//        main_ll.forEach {
+//            if (it is TextView) {
+//                it.text = "from KTX"
+//            }
+//        }
         println("2342".isDigitsOnly())
 
         // Animator
