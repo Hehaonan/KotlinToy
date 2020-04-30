@@ -10,10 +10,6 @@ import kotlin.coroutines.CoroutineContext
  * Description: ;<p/>
  * Other: ;
  */
-
-/**
- * Created by ZhangTao on 18/7/11.
- */
 object AndroidCommonPool : CoroutineDispatcher() {
     override fun dispatch(context: CoroutineContext, block: Runnable) {
         AsyncTask.THREAD_POOL_EXECUTOR.execute(block)
