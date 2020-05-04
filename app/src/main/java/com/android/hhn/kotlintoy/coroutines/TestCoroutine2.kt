@@ -13,19 +13,20 @@ import kotlin.system.measureTimeMillis
 fun main() = runBlocking<Unit> {
     val time = measureTimeMillis {
         GlobalScope.launch {
-            doSomethingUsefulOne()
-            doSomethingUsefulTwo()
+            val token = doSomethingUsefulOne()
+            doSomethingUsefulTwo(token)
         }.join()
     }
     println("Completed in $time ms")
 }
 
-suspend fun doSomethingUsefulOne() {
-    delay(1000L) // 假设我们在这里做了些有用的事
+suspend fun doSomethingUsefulOne(): String {
+    delay(2000L) // 假设我们在这里做了些有用的事
     println("doSomethingUsefulOne")
+    return "token"
 }
 
-suspend fun doSomethingUsefulTwo() {
-    delay(2500L)
-    println("doSomethingUsefulTwo")
+suspend fun doSomethingUsefulTwo(token: String) {
+    delay(1000L)
+    println("doSomethingUsefulTwo need：$token")
 }

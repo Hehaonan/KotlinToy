@@ -14,16 +14,20 @@ fun main() = runBlocking {
         val one = GlobalScope.async { getData1() }
         val two = GlobalScope.async { getData2() }
         println("The answer is ${one.await() + "-" + two.await()}")
+        // println("The answer is ${one.await()}")
+        // println("The answer is ${two.await()}")
     }
     println("Completed in $time ms")
 }
 
 private suspend fun getData1(): String {
     delay(1000)
+    println("complete data1")
     return "data1"
 }
 
 private suspend fun getData2(): String {
     delay(2000)
+    println("complete data2")
     return "data2"
 }
