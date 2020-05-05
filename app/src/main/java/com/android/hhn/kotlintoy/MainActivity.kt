@@ -12,6 +12,7 @@ import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.coroutines.*
 import okhttp3.OkHttpClient
 import okhttp3.Request
+import okhttp3.Response
 
 class MainActivity : AppCompatActivity() {
 
@@ -24,10 +25,14 @@ class MainActivity : AppCompatActivity() {
         main_start_request_btn.setOnClickListener {
             GlobalScope.launch(Dispatchers.Main) {
                 main_content_tv.text = "loading..."
+                Log.d(TAG, ": loading ");
                 // delay(500)
                 main_content_tv.text = getData()
+                Log.d(TAG, ": get data done ");
             }
+            Log.d(TAG, ": UI going ");
         }
+
         main_content_tv.setOnClickListener {
             clearData(it as TextView)
         }
@@ -44,7 +49,13 @@ class MainActivity : AppCompatActivity() {
     private suspend fun getData(): String? {
         // 异步任务
         val job = GlobalScope.async(AndroidCommonPool) {
-            mOkHttpClient.newCall(mRequest).execute().body()?.string()
+            try {
+                val response = mOkHttpClient.newCall(mRequest).execute()
+                return@async response.body()?.string()
+            } catch (e: Exception) {
+                e.printStackTrace()
+                return@async "请求错误"
+            }
         }
         return job.await() // null 也可以
     }
