@@ -1,9 +1,5 @@
 package com.android.hhn.kotlintoy.hello
 
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
-import java.lang.Integer.parseInt
-
 /**
  * Author: haonan.he ;<p/>
  * Date: 2020-02-10,15:32 ;<p/>
