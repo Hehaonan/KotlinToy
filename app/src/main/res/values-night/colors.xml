@@ -5,7 +5,7 @@
     <color name="colorPrimaryDark">#2072fb</color>
     <color name="colorAccent">#448aff</color>
     <color name="colorAccentLight">#A979E6F4</color>
-    <color name="textColor">#000000</color>
-    <color name="bgColor">#ffffff</color>
-    <color name="buttonBgColor">#F6F6F6</color>
+    <color name="textColor">#ffffff</color>
+    <color name="bgColor">#000000</color>
+    <color name="buttonBgColor">#1B1B1B</color>
 </resources>

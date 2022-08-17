@@ -35,6 +35,7 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
         findViewById<View>(R.id.ac_main_test_net).setOnClickListener(this)
         findViewById<View>(R.id.ac_main_test_sticker).setOnClickListener(this)
         findViewById<View>(R.id.ac_main_test_panorama).setOnClickListener(this)
+        findViewById<View>(R.id.ac_main_theme_change).setOnClickListener(this)
     }
 
     override fun onClick(v: View) {
@@ -48,6 +49,15 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
                 startActivity(intent)
             }
             R.id.ac_main_test_panorama -> {
+            }
+            R.id.ac_main_theme_change -> {
+                val mode = if (isDarkMode) {
+                    AppCompatDelegate.MODE_NIGHT_NO
+                } else {
+                    AppCompatDelegate.MODE_NIGHT_YES
+                }
+                AppCompatDelegate.setDefaultNightMode(mode)
+                recreate()
             }
         }
     }
@@ -65,9 +75,9 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
                 ContextCompat.checkSelfPermission(this, it) == PackageManager.PERMISSION_GRANTED
             }
 
-            if (permissionsAllGranted) {
-                Toast.makeText(this, "permissionsAllGranted", Toast.LENGTH_SHORT).show()
-            }
+            // if (permissionsAllGranted) {
+            //     Toast.makeText(this, "permissionsAllGranted", Toast.LENGTH_SHORT).show()
+            // }
         }
     }
 
