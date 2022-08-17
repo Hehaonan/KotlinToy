@@ -1,125 +1,74 @@
 package com.android.hhn.kotlintoy
 
-import android.content.Context
+import android.Manifest
+import android.content.Intent
+import android.content.pm.PackageManager
 import android.os.Bundle
-import android.util.Log
-import android.widget.TextView
+import android.view.View
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.content.edit
-import androidx.core.text.isDigitsOnly
-import androidx.core.view.forEach
-import kotlinx.android.synthetic.main.activity_main.*
-import kotlinx.coroutines.*
-import okhttp3.OkHttpClient
-import okhttp3.Request
+import androidx.appcompat.app.AppCompatDelegate
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
+import com.android.hhn.kotlintoy.net.TestNetRequestActivity
 
-class MainActivity : AppCompatActivity() {
+val isDarkMode: Boolean
+    get() = AppCompatDelegate.getDefaultNightMode() == AppCompatDelegate.MODE_NIGHT_YES
 
-    private val TAG: String = "MainActivity"
+class MainActivity : AppCompatActivity(), View.OnClickListener {
+    companion object {
+        private const val TAG = "MainActivity"
+        private const val PERMISSION_REQUEST_CODE = 0
+    }
+
+    private val permissions = arrayOf(
+        Manifest.permission.WRITE_EXTERNAL_STORAGE,
+        Manifest.permission.READ_EXTERNAL_STORAGE,
+        Manifest.permission.CAMERA
+    )
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
-
-        main_start_request_btn.setOnClickListener {
-            GlobalScope.launch(Dispatchers.Main) {
-                main_content_tv.text = "loading..."
-                Log.d(TAG, ": loading ");
-                // delay(500)
-                main_content_tv.text = getData()
-                Log.d(TAG, ": get data done ");
-            }
-            Log.d(TAG, ": UI going ");
-        }
-
-        main_content_tv.setOnClickListener {
-            clearData(it as TextView)
-        }
-
-        //testCoroutine()
-
-        // testKTX()
-
+        setContentView(R.layout.kt_activity_main)
+        ActivityCompat.requestPermissions(this, permissions, PERMISSION_REQUEST_CODE)
+        findViewById<View>(R.id.ac_main_test_net).setOnClickListener(this)
+        findViewById<View>(R.id.ac_main_test_sticker).setOnClickListener(this)
+        findViewById<View>(R.id.ac_main_test_panorama).setOnClickListener(this)
     }
 
-    private val mOkHttpClient = OkHttpClient()
-    private val mRequest = Request.Builder().url("https://www.baidu.com").get().build()
-
-    private suspend fun getData(): String? {
-        // 异步任务
-        val job = GlobalScope.async(AndroidCommonPool) {
-            try {
-                val response = mOkHttpClient.newCall(mRequest).execute()
-                return@async response.body()?.string()
-            } catch (e: Exception) {
-                e.printStackTrace()
-                return@async "请求错误"
+    override fun onClick(v: View) {
+        when (v.id) {
+            R.id.ac_main_test_net -> {
+                val intent = Intent(this, TestNetRequestActivity::class.java)
+                startActivity(intent)
+            }
+            R.id.ac_main_test_sticker -> {
+            }
+            R.id.ac_main_test_panorama -> {
             }
         }
-        return job.await() // null 也可以
     }
 
-    fun clearData(textView: TextView) {
-        textView.text = "clear data"
+    override fun onResume() {
+        super.onResume()
     }
 
-    private fun testCoroutine() {
-        Log.d(TAG, "主线程id：${Thread.currentThread().id}")
-        runBlocking {
-            delay(1000)
-            Log.d(TAG, "协程执行结束 -- 线程id：${Thread.currentThread().id}")
-        }
-        Log.d(TAG, "主线程执行结束")
+    override fun onRequestPermissionsResult(
+        requestCode: Int, permissions: Array<out String>, grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == PERMISSION_REQUEST_CODE) {
+            val permissionsAllGranted = permissions.all {
+                ContextCompat.checkSelfPermission(this, it) == PackageManager.PERMISSION_GRANTED
+            }
 
-        Log.d(TAG, "主线程id：${Thread.currentThread().id}")
-        val job = GlobalScope.launch(Dispatchers.Default, CoroutineStart.LAZY) {
-            delay(2000)
-            Log.d(TAG, "协程执行结束 -- 线程id：${Thread.currentThread().id}")
-        }.start()
-        Log.d(TAG, "主线程执行结束")
-    }
-
-    fun testKTX() {
-        getSharedPreferences("Space", Context.MODE_PRIVATE).edit(true) {
-            putInt("key-int", 5)
-            putString("key-str", "test")
-        }
-        main_ll.forEach {
-            if (it is TextView) {
-                it.text = "from KTX"
+            if (permissionsAllGranted) {
+                Toast.makeText(this, "permissionsAllGranted", Toast.LENGTH_SHORT).show()
             }
         }
-        println("2342".isDigitsOnly())
-
-//        // Animator
-//        val animator = ObjectAnimator.ofFloat(main_content_tv, "alpha", 1.0f, 0.2f)
-//        // 常规
-//        animator.addListener(object : Animator.AnimatorListener {
-//            override fun onAnimationRepeat(animation: Animator?) {
-//            }
-//
-//            override fun onAnimationEnd(animation: Animator?) {
-//            }
-//
-//            override fun onAnimationCancel(animation: Animator?) {
-//            }
-//
-//            override fun onAnimationStart(animation: Animator?) {
-//            }
-//        })
-//        // KTX
-//        animator.doOnStart { }
-//        animator.doOnEnd { }
-//        animator.doOnCancel { }
-
-//        // 常规
-//        handler.postDelayed({
-//            // runnable.run()
-//        }, 1000L)
-//        // KTX
-//        handler.postDelayed(1000L) {
-//            // runnable.run()
-//        }
     }
 
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+    }
 }

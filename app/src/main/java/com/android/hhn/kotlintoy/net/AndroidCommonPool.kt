@@ -1,4 +1,4 @@
-package com.android.hhn.kotlintoy
+package com.android.hhn.kotlintoy.net
 
 import android.os.AsyncTask
 import kotlinx.coroutines.CoroutineDispatcher
