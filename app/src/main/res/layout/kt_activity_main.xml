@@ -14,7 +14,7 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:orientation="vertical"
-            android:padding="12dp">
+            android:padding="@dimen/dp12">
 
             <!-- <TextView-->
             <!--     style="@style/subTitle"-->
@@ -29,14 +29,14 @@
             <Button
                 android:id="@+id/ac_main_test_sticker"
                 style="@style/actionButton"
-                android:layout_marginTop="12dp"
+                android:layout_marginTop="@dimen/dp12"
                 android:drawableStart="@drawable/ic_collections_black"
                 android:text="测试贴纸功能" />
 
             <Button
                 android:id="@+id/ac_main_test_panorama"
                 style="@style/actionButton"
-                android:layout_marginTop="12dp"
+                android:layout_marginTop="@dimen/dp12"
                 android:drawableStart="@drawable/panorama"
                 android:text="全景图" />
 
@@ -48,7 +48,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="right|bottom"
-        android:layout_margin="30dp"
+        android:layout_margin="@dimen/dp30"
         android:contentDescription="TODO"
         android:src="@drawable/ic_brightness_4_black_24dp"
         android:tint="#ffffff"

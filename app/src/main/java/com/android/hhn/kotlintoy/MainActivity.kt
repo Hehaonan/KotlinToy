@@ -11,6 +11,7 @@ import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.android.hhn.kotlintoy.net.TestNetRequestActivity
+import com.android.hhn.kotlintoy.sticker.TestStickerActivity
 
 val isDarkMode: Boolean
     get() = AppCompatDelegate.getDefaultNightMode() == AppCompatDelegate.MODE_NIGHT_YES
@@ -43,6 +44,8 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
                 startActivity(intent)
             }
             R.id.ac_main_test_sticker -> {
+                val intent = Intent(this, TestStickerActivity::class.java)
+                startActivity(intent)
             }
             R.id.ac_main_test_panorama -> {
             }
