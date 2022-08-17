@@ -33,13 +33,12 @@
                 android:drawableStart="@drawable/ic_collections_black"
                 android:text="测试贴纸功能" />
 
-            <Button
-                android:id="@+id/ac_main_test_panorama"
-                style="@style/actionButton"
-                android:layout_marginTop="@dimen/dp12"
-                android:drawableStart="@drawable/panorama"
-                android:text="全景图" />
-
+            <!-- <Button-->
+            <!--     android:id="@+id/ac_main_test_panorama"-->
+            <!--     style="@style/actionButton"-->
+            <!--     android:layout_marginTop="@dimen/dp12"-->
+            <!--     android:drawableStart="@drawable/panorama"-->
+            <!--     android:text="全景图" />-->
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 
