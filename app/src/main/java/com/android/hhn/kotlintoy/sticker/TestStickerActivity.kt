@@ -62,7 +62,7 @@ class TestStickerActivity : AppCompatActivity(), View.OnClickListener {
         when (v.id) {
             R.id.add_image -> {
                 val imageBitmap = BitmapFactory.decodeResource(resources, R.mipmap.kt_sticker_item)
-                mStickerView!!.addBitImage(imageBitmap, StickerItem.STICKER_TYPE_IMAGE)
+                mStickerView!!.addStickerItem(imageBitmap, StickerItem.STICKER_TYPE_IMAGE)
             }
             R.id.add_text -> {
                 createTextDialog()
@@ -122,7 +122,7 @@ class TestStickerActivity : AppCompatActivity(), View.OnClickListener {
                 paint.textSize = 35 * density
                 canvas.drawText(text, 0f, 35 * density, paint)
             }
-            mStickerView!!.addBitImage(finalBm, StickerItem.STICKER_TYPE_NORMAL_TEXT)
+            mStickerView!!.addStickerItem(finalBm, StickerItem.STICKER_TYPE_NORMAL_TEXT)
         }.setNegativeButton("取消", null).create()
         mTextDialog?.show()
     }

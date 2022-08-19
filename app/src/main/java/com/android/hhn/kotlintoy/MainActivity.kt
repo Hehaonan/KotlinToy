@@ -34,7 +34,6 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
         ActivityCompat.requestPermissions(this, permissions, PERMISSION_REQUEST_CODE)
         findViewById<View>(R.id.ac_main_test_net).setOnClickListener(this)
         findViewById<View>(R.id.ac_main_test_sticker).setOnClickListener(this)
-        findViewById<View>(R.id.ac_main_test_panorama).setOnClickListener(this)
         findViewById<View>(R.id.ac_main_theme_change).setOnClickListener(this)
     }
 
@@ -47,8 +46,6 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
             R.id.ac_main_test_sticker -> {
                 val intent = Intent(this, TestStickerActivity::class.java)
                 startActivity(intent)
-            }
-            R.id.ac_main_test_panorama -> {
             }
             R.id.ac_main_theme_change -> {
                 val mode = if (isDarkMode) {
