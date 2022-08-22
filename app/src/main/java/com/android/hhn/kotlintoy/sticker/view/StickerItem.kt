@@ -10,7 +10,6 @@ class StickerItem(
     context: Context, val itemId: Int, val stickerType: Int
 ) {
     companion object {
-        private const val TAG = "StickerView"
         const val STICKER_TYPE_NORMAL_TEXT = 1 // 普通文字
         const val STICKER_TYPE_ART_TEXT = 2 // 花字
         const val STICKER_TYPE_IMAGE = 3 // 图片
@@ -55,7 +54,7 @@ class StickerItem(
     private lateinit var mGreenPaint: Paint // debug:工具按钮区域
 
     //====== 对外暴露 =====
-    private var helpBox: RectF? = null //工具框的坐标区域
+    private var helpBox: RectF = RectF() //工具框的坐标区域
     var contentRect: RectF? = null // 绘制内容区域坐标
         private set
     var detectDeleteRect: RectF? = null //检测删除按钮的点击区域
@@ -125,27 +124,26 @@ class StickerItem(
         mInitCenterX = contentRect!!.centerX()
         mInitCenterY = contentRect!!.centerY()
         isShowHelpTools = true
-        helpBox = RectF(contentRect)
-        updateHelpBoxRect()
+        updateHelpBoxRect(contentRect!!)
+        // 初始化工具按钮的位置
         mHelpToolsRect = RectF(
             0f, 0f, mDeleteBm!!.width.toFloat(), mDeleteBm!!.height.toFloat()
         )
         mDeleteRect = RectF(
-            helpBox!!.right - mButtonWidth, helpBox!!.top - mButtonWidth,
-            helpBox!!.right + mButtonWidth, helpBox!!.top + mButtonWidth
+            helpBox.right - mButtonWidth, helpBox.top - mButtonWidth,
+            helpBox.right + mButtonWidth, helpBox.top + mButtonWidth
         )
         mRotateRect = RectF(
-            helpBox!!.right - mButtonWidth, helpBox!!.bottom - mButtonWidth,
-            helpBox!!.right + mButtonWidth, helpBox!!.bottom + mButtonWidth
+            helpBox.right - mButtonWidth, helpBox.bottom - mButtonWidth,
+            helpBox.right + mButtonWidth, helpBox.bottom + mButtonWidth
         )
         mEditRect = RectF(
-            helpBox!!.left - mButtonWidth, helpBox!!.top - mButtonWidth,
-            helpBox!!.left + mButtonWidth, helpBox!!.top + mButtonWidth
+            helpBox.left - mButtonWidth, helpBox.top - mButtonWidth,
+            helpBox.left + mButtonWidth, helpBox.top + mButtonWidth
         )
         detectRotateRect = RectF(mRotateRect)
         detectDeleteRect = RectF(mDeleteRect)
         detectEditRect = RectF(mEditRect)
-
         // 扩大点击区域
         detectRotateRect!!.inset(-mButtonMargin.toFloat(), -mButtonMargin.toFloat())
         detectDeleteRect!!.inset(-mButtonMargin.toFloat(), -mButtonMargin.toFloat())
@@ -159,9 +157,9 @@ class StickerItem(
         }
         if (isShowHelpTools) { // 绘制辅助工具线
             canvas.save()
-            canvas.rotate(rotateAngle, helpBox!!.centerX(), helpBox!!.centerY())
+            canvas.rotate(rotateAngle, helpBox.centerX(), helpBox.centerY())
             canvas.drawRoundRect(
-                helpBox!!,
+                helpBox,
                 mStrokeRadius.toFloat(),
                 mStrokeRadius.toFloat(),
                 mHelpBoxPaint
@@ -193,99 +191,41 @@ class StickerItem(
         get() = stickerType != STICKER_TYPE_IMAGE
 
     fun updateItem() { // 用上次记录的值 重新做放大 旋转 位移
-        Log.d(TAG, "updateItem old finalScale=$finalScale,mRotateAngle=$rotateAngle")
-        Log.d(TAG, "updateItem old mFinalCenterDx=$mFinalCenterDx,mFinalCenterDy=$mFinalCenterDy")
         mMatrix.postScale(finalScale, finalScale, contentRect!!.centerX(), contentRect!!.centerY())
-        scaleRect(contentRect, finalScale) // 缩放目标矩形
-        // 重新计算工具箱坐标
-        helpBox!!.set(contentRect!!)
-        updateHelpBoxRect() // 重新计算
-        mRotateRect!!.offsetTo(helpBox!!.right - mButtonWidth, helpBox!!.bottom - mButtonWidth)
-        mDeleteRect!!.offsetTo(helpBox!!.right - mButtonWidth, helpBox!!.top - mButtonWidth)
-        mEditRect!!.offsetTo(helpBox!!.left - mButtonWidth, helpBox!!.top - mButtonWidth)
-        detectRotateRect = RectF(mRotateRect)
-        detectDeleteRect = RectF(mDeleteRect)
-        detectEditRect = RectF(mEditRect)
-        // 扩大点击区域
-        detectRotateRect!!.inset(-mButtonMargin.toFloat(), -mButtonMargin.toFloat())
-        detectDeleteRect!!.inset(-mButtonMargin.toFloat(), -mButtonMargin.toFloat())
-        detectEditRect!!.inset(-mButtonMargin.toFloat(), -mButtonMargin.toFloat())
+        scaleRect(contentRect!!, finalScale) // 缩放内容Rect
+        updateAllRectByScale() // 缩放其他按钮
 
-        mMatrix.postRotate(rotateAngle, contentRect!!.centerX(), contentRect!!.centerY())
-        rotateRect(detectRotateRect, contentRect!!.centerX(), contentRect!!.centerY(), rotateAngle)
-        rotateRect(detectDeleteRect, contentRect!!.centerX(), contentRect!!.centerY(), rotateAngle)
-        rotateRect(detectEditRect, contentRect!!.centerX(), contentRect!!.centerY(), rotateAngle)
+        updateRotateInternal(rotateAngle, rotateAngle)// 更新旋转角度
 
         val dx = mFinalCenterDx
         val dy = mFinalCenterDy
-        mMatrix.postTranslate(dx, dy)
         contentRect!!.offset(dx, dy)
-        // 工具按钮随之移动
-        helpBox!!.offset(dx, dy)
-        mDeleteRect!!.offset(dx, dy)
-        mRotateRect!!.offset(dx, dy)
-        mEditRect!!.offset(dx, dy)
-        detectRotateRect!!.offset(dx, dy)
-        detectDeleteRect!!.offset(dx, dy)
-        detectEditRect!!.offset(dx, dy)
+        updatePositionInternal(dx, dy)// 更新位置
     }
 
-    fun updateScale(deltaS: Float) {
-        var deltaScale = deltaS
+    //外部控制缩放大小,目前由TextStickerPanel.SeekBar控制
+    fun updateScale(deltaScale: Float) {
+        var deltaS = deltaScale
         val old = finalScale
-        Log.d(TAG, "updateScale old=$old,deltaScale=$deltaScale")
-        val newWidth = contentRect!!.width() * deltaScale
+        val newWidth = contentRect!!.width() * deltaS
         finalScale = newWidth / mInitWidth
-        Log.d(TAG, "updateScale finalScale=$finalScale")
         if (old == finalScale) { // 不需要再更新
             return
         }
         if (finalScale < MIN_SCALE) { //缩放值检测
-            deltaScale = MIN_SCALE / old
+            deltaS = MIN_SCALE / old
             finalScale = MIN_SCALE
-            Log.d(TAG, "updateScale min finalScale=$finalScale,deltaScale=$deltaScale")
         } else if (finalScale > MAX_SCALE) {
-            deltaScale = MAX_SCALE / old
+            deltaS = MAX_SCALE / old
             finalScale = MAX_SCALE
-            Log.d(TAG, "updateScale max finalScale=$finalScale,deltaScale=$deltaScale")
         }
-        val tempM = Matrix()
-        val tempR = RectF(contentRect)
-        tempM.postScale(deltaScale, deltaScale, tempR.centerX(), tempR.centerY()) // 存入scale矩阵
-        scaleRect(tempR, deltaScale)
-        if (!diyContains(borderRectF, tempR)) { // 判断下缩放是否会超出边界
-            Log.d(TAG, "updateScale out border")
-            return
+
+        if (!updateScaleInternal(deltaS)) { // 更新缩放比例
+            return // 不能缩放直接return
         }
-        mMatrix.postScale(deltaScale, deltaScale, contentRect!!.centerX(), contentRect!!.centerY())
-        scaleRect(contentRect, deltaScale) // 缩放目标矩形
+        updateAllRectByScale() // 缩放其他按钮
 
-        // 重新计算工具箱坐标
-        helpBox!!.set(contentRect!!)
-        updateHelpBoxRect() // 重新计算
-        mRotateRect!!.offsetTo(helpBox!!.right - mButtonWidth, helpBox!!.bottom - mButtonWidth)
-        mDeleteRect!!.offsetTo(helpBox!!.right - mButtonWidth, helpBox!!.top - mButtonWidth)
-        mEditRect!!.offsetTo(helpBox!!.left - mButtonWidth, helpBox!!.top - mButtonWidth)
-        detectRotateRect = RectF(mRotateRect)
-        detectDeleteRect = RectF(mDeleteRect)
-        detectEditRect = RectF(mEditRect)
-
-        // 扩大点击区域
-        detectRotateRect!!.inset(-mButtonMargin.toFloat(), -mButtonMargin.toFloat())
-        detectDeleteRect!!.inset(-mButtonMargin.toFloat(), -mButtonMargin.toFloat())
-        detectEditRect!!.inset(-mButtonMargin.toFloat(), -mButtonMargin.toFloat())
-
-        // 更新旋转过的角度
-        rotateRect(detectRotateRect, contentRect!!.centerX(), contentRect!!.centerY(), rotateAngle)
-        rotateRect(detectDeleteRect, contentRect!!.centerX(), contentRect!!.centerY(), rotateAngle)
-        rotateRect(detectEditRect, contentRect!!.centerX(), contentRect!!.centerY(), rotateAngle)
-    }
-
-    private fun updateHelpBoxRect() { //更新边框大小
-        helpBox!!.left -= mHelpBoxPadding.toFloat()
-        helpBox!!.right += mHelpBoxPadding.toFloat()
-        helpBox!!.top -= mHelpBoxPadding.toFloat()
-        helpBox!!.bottom += mHelpBoxPadding.toFloat()
+        updateAllRectByRotate(rotateAngle) // 更新旋转角度
     }
 
     private val mTempRect0 = RectF()
@@ -303,7 +243,6 @@ class StickerItem(
     private val borderRectF: RectF
         get() {
             if (mParentView.borderRectF.isEmpty) {
-                Log.d(TAG, "get borderRectF is Empty")
                 return RectF(0f, 0f, mParentView.width.toFloat(), mParentView.height.toFloat())
             }
             return mParentView.borderRectF
@@ -312,45 +251,34 @@ class StickerItem(
     /**
      * 位置更新
      *
-     * @param dx
-     * @param dy
+     * @param dx 增量x
+     * @param dy 增量y
      */
-    fun updatePos(dx: Float, dy: Float) {
+    fun updatePosition(dx: Float, dy: Float) {
         contentRect!!.offset(dx, dy)
         // 处理边界保护
         if (!diyContains(borderRectF, contentRect!!)) {
             contentRect!!.offset(-dx, -dy)
             return
         }
-        mMatrix.postTranslate(dx, dy) // 记录到矩阵中
-
-        // 工具按钮随之移动
-        helpBox!!.offset(dx, dy)
-        mDeleteRect!!.offset(dx, dy)
-        mRotateRect!!.offset(dx, dy)
-        mEditRect!!.offset(dx, dy)
-        detectRotateRect!!.offset(dx, dy)
-        detectDeleteRect!!.offset(dx, dy)
-        detectEditRect!!.offset(dx, dy)
-        mFinalCenterDx = helpBox!!.centerX() - mInitCenterX
-        mFinalCenterDy = helpBox!!.centerY() - mInitCenterY
+        updatePositionInternal(dx, dy)
+        // 记录下中心点的差值
+        mFinalCenterDx = helpBox.centerX() - mInitCenterX
+        mFinalCenterDy = helpBox.centerY() - mInitCenterY
     }
 
     /**
-     * 旋转 缩放 更新
+     * 同时更新旋转、缩放
      *
      * @param dx
      * @param dy
      */
     fun updateRotateAndScale(dx: Float, dy: Float, isNeedScale: Boolean, isNeedRotate: Boolean) {
-        Log.d(TAG, "updateRotateAndScale dx=$dx,dy=$dy")
         val cX = contentRect!!.centerX()
         val cY = contentRect!!.centerY()
         val x = detectRotateRect!!.centerX()
         val y = detectRotateRect!!.centerY()
 
-        // float x = oldx;
-        // float y = oldy;
         val nX = x + dx
         val nY = y + dy
         val xa = x - cX
@@ -362,56 +290,91 @@ class StickerItem(
         val scale = curLen / srcLen // 计算缩放比
         val newWidth = contentRect!!.width() * scale
         finalScale = newWidth / mInitWidth
-        Log.d(TAG, "updateRotateAndScale scale=$scale,finalScale=$finalScale")
         if (finalScale < MIN_SCALE || finalScale > MAX_SCALE) { //缩放值检测
             return
         }
         if (isNeedScale) {
-            val tempM = Matrix()
-            val tempR = RectF(contentRect)
-            tempM.postScale(scale, scale, tempR.centerX(), tempR.centerY())
-            scaleRect(tempR, scale)
-            if (!diyContains(borderRectF, tempR)) { // 判断下缩放是否会超出边界
-                Log.d(TAG, "postScale out border")
-            } else {
-                mMatrix.postScale(
-                    scale, scale, contentRect!!.centerX(), contentRect!!.centerY()
-                ) // 存入scale矩阵
-                scaleRect(contentRect, scale) // 缩放目标矩形
-            }
+            val isCanScale = updateScaleInternal(scale)
         }
+        updateAllRectByScale() // 缩放其他按钮
 
-        // 重新计算工具箱坐标
-        helpBox!!.set(contentRect!!)
-        updateHelpBoxRect() // 重新计算
-        mRotateRect!!.offsetTo(helpBox!!.right - mButtonWidth, helpBox!!.bottom - mButtonWidth)
-        mDeleteRect!!.offsetTo(helpBox!!.right - mButtonWidth, helpBox!!.top - mButtonWidth)
-        mEditRect!!.offsetTo(helpBox!!.left - mButtonWidth, helpBox!!.top - mButtonWidth)
-        detectRotateRect!!.set(mRotateRect!!)
-        detectDeleteRect!!.set(mDeleteRect!!)
-        detectEditRect!!.set(mEditRect!!)
-
-        // 扩大点击区域
-        detectRotateRect!!.inset(-mButtonMargin.toFloat(), -mButtonMargin.toFloat())
-        detectDeleteRect!!.inset(-mButtonMargin.toFloat(), -mButtonMargin.toFloat())
-        detectEditRect!!.inset(-mButtonMargin.toFloat(), -mButtonMargin.toFloat())
         var angle = 0f
         if (isNeedRotate) {
             val cos = ((xa * xb + ya * yb) / (srcLen * curLen)).toDouble()
             if (cos > 1 || cos < -1) return
             angle = Math.toDegrees(acos(cos)).toFloat()
-
             // 拉普拉斯定理
             val calMatrix = xa * yb - xb * ya // 行列式计算 确定转动方向
             val flag = if (calMatrix > 0) 1 else -1
             angle *= flag
         }
         rotateAngle += angle
-        mMatrix.postRotate(angle, contentRect!!.centerX(), contentRect!!.centerY())
-        Log.d(TAG, "updateRotateAndScale mRotateAngle=$rotateAngle")
-        rotateRect(detectRotateRect, contentRect!!.centerX(), contentRect!!.centerY(), rotateAngle)
-        rotateRect(detectDeleteRect, contentRect!!.centerX(), contentRect!!.centerY(), rotateAngle)
-        rotateRect(detectEditRect, contentRect!!.centerX(), contentRect!!.centerY(), rotateAngle)
+        updateRotateInternal(angle, rotateAngle)
+    }
+
+    private fun updateRotateInternal(deltaAngle: Float, finalAngle: Float) {
+        mMatrix.postRotate(deltaAngle, contentRect!!.centerX(), contentRect!!.centerY())
+        updateAllRectByRotate(finalAngle)
+    }
+
+    private fun updateAllRectByRotate(finalAngle: Float) {
+        rotateRect(detectRotateRect, contentRect!!.centerX(), contentRect!!.centerY(), finalAngle)
+        rotateRect(detectDeleteRect, contentRect!!.centerX(), contentRect!!.centerY(), finalAngle)
+        rotateRect(detectEditRect, contentRect!!.centerX(), contentRect!!.centerY(), finalAngle)
+    }
+
+    private fun updatePositionInternal(dx: Float, dy: Float) {
+        mMatrix.postTranslate(dx, dy) // 记录到矩阵中
+        helpBox.offset(dx, dy) // 移动其他工具按钮
+        mDeleteRect!!.offset(dx, dy)
+        mRotateRect!!.offset(dx, dy)
+        mEditRect!!.offset(dx, dy)
+        detectRotateRect!!.offset(dx, dy)
+        detectDeleteRect!!.offset(dx, dy)
+        detectEditRect!!.offset(dx, dy)
+    }
+
+    // 只缩放内容Rect return true:缩放不会超出编辑
+    private fun updateScaleInternal(deltaScale: Float): Boolean {
+        val tempM = Matrix()
+        val tempR = RectF(contentRect)
+        tempM.postScale(deltaScale, deltaScale, tempR.centerX(), tempR.centerY())
+        scaleRect(tempR, deltaScale)
+        if (!diyContains(borderRectF, tempR)) { // 用临时Rect判断下缩放是否会超出边界
+            return false
+        }
+        // 不会缩放出边界再用真实的Rect去缩放
+        mMatrix.postScale(
+            deltaScale, deltaScale, contentRect!!.centerX(), contentRect!!.centerY()
+        ) // 存入scale矩阵
+        scaleRect(contentRect!!, deltaScale) // 缩放内容Rect
+        return true
+    }
+
+    private fun updateAllRectByScale() { // 根据内容Rect重新计算其他功能Rect
+        updateHelpBoxRect(contentRect!!) // 重新计算工具栏Rect
+        updateAllButtonRect()// 重新计算所有按钮Rect
+    }
+
+    private fun updateHelpBoxRect(contentRectF: RectF) { //更新工具栏大小
+        helpBox.set(contentRectF)
+        helpBox.left -= mHelpBoxPadding.toFloat()
+        helpBox.right += mHelpBoxPadding.toFloat()
+        helpBox.top -= mHelpBoxPadding.toFloat()
+        helpBox.bottom += mHelpBoxPadding.toFloat()
+    }
+
+    private fun updateAllButtonRect() { // 更新所有按钮的位置
+        mRotateRect!!.offsetTo(helpBox.right - mButtonWidth, helpBox.bottom - mButtonWidth)
+        mDeleteRect!!.offsetTo(helpBox.right - mButtonWidth, helpBox.top - mButtonWidth)
+        mEditRect!!.offsetTo(helpBox.left - mButtonWidth, helpBox.top - mButtonWidth)
+        detectRotateRect = RectF(mRotateRect)
+        detectDeleteRect = RectF(mDeleteRect)
+        detectEditRect = RectF(mEditRect)
+        // 扩大点击区域
+        detectRotateRect!!.inset(-mButtonMargin.toFloat(), -mButtonMargin.toFloat())
+        detectDeleteRect!!.inset(-mButtonMargin.toFloat(), -mButtonMargin.toFloat())
+        detectEditRect!!.inset(-mButtonMargin.toFloat(), -mButtonMargin.toFloat())
     }
 
     /**
@@ -420,8 +383,8 @@ class StickerItem(
      * @param rect
      * @param scale
      */
-    private fun scaleRect(rect: RectF?, scale: Float) {
-        val w = rect!!.width()
+    private fun scaleRect(rect: RectF, scale: Float) {
+        val w = rect.width()
         val h = rect.height()
         val newW = scale * w
         val newH = scale * h
@@ -446,35 +409,25 @@ class StickerItem(
         val dx = newX - x
         val dy = newY - y
         rect.offset(dx, dy)
-
-        // float w = rect.width();
-        // float h = rect.height();
-        // rect.left = newX;
-        // rect.top = newY;
-        // rect.right = newX + w;
-        // rect.bottom = newY + h;
     }
 
     fun clickHelpBoxRect(x: Float, y: Float): Boolean {
-        if (helpBox == null || helpBox!!.isEmpty) {
+        if (helpBox.isEmpty) {
             return false
         }
         val isClickHelpBoxRect: Boolean
         if (rotateAngle != 0f) {
             // 旋转后判断点是否在四边形内
-            Log.d(TAG, "clickHelpBox rotate mRotateAngle=$rotateAngle")
             val tempM = Matrix()
-            tempM.setRotate(rotateAngle, helpBox!!.centerX(), helpBox!!.centerY())
+            tempM.setRotate(rotateAngle, helpBox.centerX(), helpBox.centerY())
             val curPoint = PointF(x, y)
-            val pointLT = getMapPoints(tempM, helpBox!!.left, helpBox!!.top)
-            val pointRT = getMapPoints(tempM, helpBox!!.right, helpBox!!.top)
-            val pointLB = getMapPoints(tempM, helpBox!!.left, helpBox!!.bottom)
-            val pointRB = getMapPoints(tempM, helpBox!!.right, helpBox!!.bottom)
+            val pointLT = getMapPoints(tempM, helpBox.left, helpBox.top)
+            val pointRT = getMapPoints(tempM, helpBox.right, helpBox.top)
+            val pointLB = getMapPoints(tempM, helpBox.left, helpBox.bottom)
+            val pointRB = getMapPoints(tempM, helpBox.right, helpBox.bottom)
             isClickHelpBoxRect = pointInRect(curPoint, pointLT, pointRT, pointLB, pointRB)
-            Log.d(TAG, "clickHelpBox rotate contains=$isClickHelpBoxRect")
         } else {
-            isClickHelpBoxRect = helpBox!!.contains(x, y)
-            Log.d(TAG, "clickHelpBox no rotate contains=$isClickHelpBoxRect")
+            isClickHelpBoxRect = helpBox.contains(x, y)
         }
         return isClickHelpBoxRect
     }
@@ -531,6 +484,21 @@ class StickerItem(
 
         // 单边交点为偶数，点在多边形之外
         return nCross % 2 == 1
+    }
+
+    data class LocationInfo(
+        val left: Float,// 左边距，内容区域left-边框区域left，可以是负数，单位px
+        val top: Float,// 上边距，内容区域top-边框区域top，可以是负数，单位px
+        val width: Float,// 宽度，单位px
+        val height: Float// 高度，单位px
+    )
+
+    // 获取item位置信息
+    fun getLocationInfo(): LocationInfo? {
+        if (contentRect == null) return null
+        val left = contentRect!!.left - borderRectF.left
+        val top = contentRect!!.top - borderRectF.top
+        return LocationInfo(left, top, contentRect!!.width(), contentRect!!.height())
     }
 
     override fun toString(): String {

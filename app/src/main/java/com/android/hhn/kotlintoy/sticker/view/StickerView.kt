@@ -133,11 +133,11 @@ class StickerView(context: Context, attrs: AttributeSet?) : View(context, attrs)
             if (!borderRectF.contains(item.contentRect!!) && oldDiff > 0) {
                 Log.d(TAG, "setBorderRectF 移动item=" + item.itemId)
                 if (item.contentRect!!.top < borderRectF.top) {
-                    item.updatePos(0f, oldDiff.toFloat())
+                    item.updatePosition(0f, oldDiff.toFloat())
                     Log.d(TAG, "setBorderRectF 向下移动item")
                 } else if (item.contentRect!!.bottom > borderRectF.bottom) {
                     Log.d(TAG, "setBorderRectF 向下移动item")
-                    item.updatePos(0f, -oldDiff.toFloat())
+                    item.updatePosition(0f, -oldDiff.toFloat())
                 }
             }
         }
@@ -218,7 +218,7 @@ class StickerView(context: Context, attrs: AttributeSet?) : View(context, attrs)
                     val dx = x - oldX
                     val dy = y - oldY
                     if (mCurrentItem != null) {
-                        mCurrentItem!!.updatePos(dx, dy)
+                        mCurrentItem!!.updatePosition(dx, dy)
                         invalidate()
                     }
                     oldX = x
