@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:dist="http://schemas.android.com/apk/distribution"
-    xmlns:tools="http://schemas.android.com/tools"
     package="com.android.hhn.kotlintoy">
 
     <dist:module dist:instant="true" />
@@ -26,6 +25,10 @@
         <activity
             android:name="com.android.hhn.kotlintoy.sticker.TestStickerActivity"
             android:label="TestStickerActivity"
+            android:screenOrientation="fullSensor" />
+        <activity
+            android:name="com.android.hhn.kotlintoy.grey.TestGreyThemeActivity"
+            android:label="TestGreyThemeActivity"
             android:screenOrientation="fullSensor" />
 
         <activity
